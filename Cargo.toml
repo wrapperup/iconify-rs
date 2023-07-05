@@ -1,0 +1,29 @@
+[package]
+name = "iconify"
+version = "0.1.0"
+edition = "2021"
+authors = ["Matthew Taylor <wrapperupalt@gmail.com>"]
+categories = ["development-tools::code-generators"]
+description = "Proc-macros for generating icons from the Iconify API"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/wrapperup/iconify-rs"
+readme = "README.md"
+keywords = ["iconify", "icons", "proc-macro"]
+
+[features]
+default = ["cache"]
+cache = ["directories", "blake3"]
+offline = ["blake3"]
+
+[lib]
+proc-macro = true
+
+[dependencies]
+proc-macro2 = "1.0.63"
+quote = "1.0.29"
+syn = "2.0.23"
+reqwest = { version = "0.11.18", features = ["blocking"] }
+directories = { version = "5.0.1", optional = true }
+url = "2.4.0"
+blake3 = { version = "1.4.0", optional = true }
+hex = "0.4.3"
