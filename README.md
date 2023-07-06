@@ -25,7 +25,7 @@
 ## 📝 Usage 
 
 ```jsx
-let svg = iconify::svg!("mdi:home")
+let svg = iconify::svg!("mdi:home", color = "red")
 ```
 `iconify::svg!` will download and embed an SVG as a string. It will also cache the request,
 so it won't download the same SVG twice.
@@ -33,7 +33,22 @@ so it won't download the same SVG twice.
 let svg = "<svg>...</svg>"
 ```
 
-#### Templating
+### Options
+
+You can pass options to the macro to customize the SVG.
+```rust
+let svg = iconify::svg!("mdi:home",
+    width = "24",
+    height = "24",
+    color = "red",
+    // ... and more.
+)
+```
+
+All options from the [Iconify API](https://iconify.design/docs/api/svg.html) are supported. You can
+find the documentation for the options for the `svg!` macro [here](https://docs.rs/iconify/latest/iconify/macro.svg.html).
+
+### Templating
 It can also be used directly in rsx, or any compile-time template engine.
 
 Maud:
