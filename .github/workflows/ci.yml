@@ -20,7 +20,7 @@ jobs:
             rust: beta
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v1
       - uses: ./.github/actions/setup
         with:
           toolchain: ${{ matrix.rust }}
@@ -31,7 +31,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v1
       - uses: ./.github/actions/setup
         with:
           key: lint
