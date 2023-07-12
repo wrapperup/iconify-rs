@@ -18,6 +18,7 @@ offline = ["blake3"]
 
 [lib]
 proc-macro = true
+doctest = false # requires network access, can't really use doctests
 
 [dependencies]
 proc-macro2 = "1.0.64"
@@ -28,3 +29,6 @@ directories = { version = "5.0.1", optional = true }
 url = "2.4.0"
 blake3 = { version = "1.4.1", optional = true }
 hex = "0.4.3"
+
+[dev-dependencies]
+iconify = { path = ".", default-features = false }

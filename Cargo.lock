@@ -158,6 +158,7 @@ dependencies = [
  "blake3",
  "directories",
  "hex",
+ "iconify",
  "proc-macro2",
  "quote",
  "syn",
