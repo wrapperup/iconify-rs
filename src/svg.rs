@@ -1,7 +1,6 @@
 use core::fmt;
-use std::{env, fs, path::PathBuf, str::FromStr};
+use std::{env, str::FromStr};
 
-use hex::ToHex;
 use proc_macro::TokenStream;
 use proc_macro2::Span;
 use quote::quote;
@@ -125,7 +124,10 @@ impl IconifyInput {
         Ok(url.to_string())
     }
 
+    #[cfg(feature = "cache")]
     fn hash_digest(&self) -> Result<String, syn::Error> {
+        use hex::ToHex;
+
         let mut buf = [0u8; 8];
         let url = self.icon_url().map_err(|err| {
             syn::Error::new(Span::call_site(), format!("failed to parse url: {err}"))
@@ -234,14 +236,15 @@ fn iconify_url() -> String {
 }
 
 #[cfg(feature = "cache")]
-fn iconify_cache_dir() -> PathBuf {
+fn iconify_cache_dir() -> std::path::PathBuf {
+    use std::path::PathBuf;
     use directories::BaseDirs;
 
     if let Ok(dir) = env::var("ICONIFY_CACHE_DIR") {
         return PathBuf::from(dir);
     }
 
-    let mut dir = PathBuf::from(BaseDirs::new().unwrap().cache_dir());
+    let dir = PathBuf::from(BaseDirs::new().unwrap().cache_dir());
 
     // I didn't like the idea of having a cache dir in the root of %LOCALAPPDATA%.
     #[cfg(target_os = "windows")]
@@ -251,7 +254,7 @@ fn iconify_cache_dir() -> PathBuf {
 }
 
 #[cfg(feature = "cache")]
-fn iconify_cache_path(input: &IconifyInput) -> Result<PathBuf, syn::Error> {
+fn iconify_cache_path(input: &IconifyInput) -> Result<std::path::PathBuf, syn::Error> {
     let digest = input.hash_digest()?;
 
     let mut path = iconify_cache_dir();
@@ -305,7 +308,7 @@ fn fetch_svg(iconify_input: &IconifyInput) -> Result<String, syn::Error> {
     let path = {
         let path = iconify_cache_path(iconify_input)?;
 
-        if let Ok(text) = fs::read_to_string(&path) {
+        if let Ok(text) = std::fs::read_to_string(&path) {
             return Ok(text);
         }
 
@@ -333,8 +336,8 @@ fn fetch_svg(iconify_input: &IconifyInput) -> Result<String, syn::Error> {
 
     #[cfg(feature = "cache")]
     {
-        fs::create_dir_all(path.parent().unwrap()).unwrap();
-        fs::write(&path, &text).unwrap();
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        std::fs::write(&path, &text).unwrap();
     }
 
     Ok(text)
