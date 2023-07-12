@@ -243,11 +243,12 @@ fn iconify_cache_dir() -> std::path::PathBuf {
         return PathBuf::from(dir);
     }
 
+    #[cfg(not(target_os = "windows"))]
     let dir = PathBuf::from(BaseDirs::new().unwrap().cache_dir());
 
-    // I didn't like the idea of having a cache dir in the root of %LOCALAPPDATA%.
     #[cfg(target_os = "windows")]
-    dir.push("cache");
+    // I didn't like the idea of having a cache dir in the root of %LOCALAPPDATA%.
+    let dir = PathBuf::from(BaseDirs::new().unwrap().cache_dir()).join("cache");
 
     dir.join("iconify-rs")
 }
