@@ -319,18 +319,11 @@ fn fetch_svg(iconify_input: &IconifyInput) -> Result<String, syn::Error> {
         .icon_url()
         .map_err(|err| syn::Error::new(Span::call_site(), format!("couldn't parse url: {err}")))?;
 
-    let request = reqwest::blocking::get(url).map_err(|err| {
+    let response = ureq::get(&url).call().map_err(|err| {
         syn::Error::new(Span::call_site(), format!("failed to fetch icon: {err}"))
     })?;
 
-    if !request.status().is_success() {
-        return Err(syn::Error::new(
-            Span::call_site(),
-            format!("failed to fetch icon: {}", request.status()),
-        ));
-    }
-
-    let text = request.text().map_err(|err| {
+    let text = response.into_string().map_err(|err| {
         syn::Error::new(Span::call_site(), format!("failed to fetch icon: {err}"))
     })?;
 
