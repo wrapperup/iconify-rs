@@ -1,8 +1,7 @@
 use core::fmt;
 use std::{env, str::FromStr};
 
-use proc_macro::TokenStream;
-use proc_macro2::Span;
+use proc_macro2::{Span, TokenStream};
 use quote::quote;
 use syn::parse::{Parse, ParseStream};
 
@@ -124,7 +123,7 @@ impl IconifyInput {
         Ok(url.to_string())
     }
 
-    #[cfg(feature = "cache")]
+    #[cfg(all(not(test), feature = "cache"))]
     fn hash_digest(&self) -> Result<String, syn::Error> {
         use hex::ToHex;
 
@@ -235,25 +234,26 @@ fn iconify_url() -> String {
     env::var("ICONIFY_URL").unwrap_or("https://api.iconify.design".to_string())
 }
 
-#[cfg(feature = "cache")]
+#[cfg(all(not(test), feature = "cache"))]
 fn iconify_cache_dir() -> std::path::PathBuf {
-    use std::path::PathBuf;
     use directories::BaseDirs;
+    use std::path::PathBuf;
 
     if let Ok(dir) = env::var("ICONIFY_CACHE_DIR") {
         return PathBuf::from(dir);
     }
 
+    #[cfg(not(target_os = "windows"))]
     let dir = PathBuf::from(BaseDirs::new().unwrap().cache_dir());
 
-    // I didn't like the idea of having a cache dir in the root of %LOCALAPPDATA%.
     #[cfg(target_os = "windows")]
-    dir.push("cache");
+    // I didn't like the idea of having a cache dir in the root of %LOCALAPPDATA%.
+    let dir = PathBuf::from(BaseDirs::new().unwrap().cache_dir()).join("cache");
 
     dir.join("iconify-rs")
 }
 
-#[cfg(feature = "cache")]
+#[cfg(all(not(test), feature = "cache"))]
 fn iconify_cache_path(input: &IconifyInput) -> Result<std::path::PathBuf, syn::Error> {
     let digest = input.hash_digest()?;
 
@@ -304,7 +304,7 @@ fn prepare_offline_icons() -> bool {
 }
 
 fn fetch_svg(iconify_input: &IconifyInput) -> Result<String, syn::Error> {
-    #[cfg(feature = "cache")]
+    #[cfg(all(not(test), feature = "cache"))]
     let path = {
         let path = iconify_cache_path(iconify_input)?;
 
@@ -319,22 +319,23 @@ fn fetch_svg(iconify_input: &IconifyInput) -> Result<String, syn::Error> {
         .icon_url()
         .map_err(|err| syn::Error::new(Span::call_site(), format!("couldn't parse url: {err}")))?;
 
-    let request = reqwest::blocking::get(url).map_err(|err| {
+    let response = ureq::get(&url).call().map_err(|err| {
         syn::Error::new(Span::call_site(), format!("failed to fetch icon: {err}"))
     })?;
 
-    if !request.status().is_success() {
+    let text = response.into_string().map_err(|err| {
+        syn::Error::new(Span::call_site(), format!("failed to fetch icon: {err}"))
+    })?;
+
+    // Iconify API does not set the status code to 404 when an icon is not found... amazing.
+    if text == "404" {
         return Err(syn::Error::new(
             Span::call_site(),
-            format!("failed to fetch icon: {}", request.status()),
+            format!("icon not found: {}", url),
         ));
     }
 
-    let text = request.text().map_err(|err| {
-        syn::Error::new(Span::call_site(), format!("failed to fetch icon: {err}"))
-    })?;
-
-    #[cfg(feature = "cache")]
+    #[cfg(all(not(test), feature = "cache"))]
     {
         std::fs::create_dir_all(path.parent().unwrap()).unwrap();
         std::fs::write(&path, &text).unwrap();
@@ -343,8 +344,8 @@ fn fetch_svg(iconify_input: &IconifyInput) -> Result<String, syn::Error> {
     Ok(text)
 }
 
-pub fn iconify_svg_impl(input: TokenStream) -> TokenStream {
-    let iconify_input = syn::parse_macro_input!(input as IconifyInput);
+pub fn iconify_svg_impl(input: TokenStream) -> syn::Result<TokenStream> {
+    let iconify_input = syn::parse2::<IconifyInput>(input)?;
 
     // If we're using offline icons, we need to fetch them from the
     // iconify API during development. This is done by setting the
@@ -357,12 +358,7 @@ pub fn iconify_svg_impl(input: TokenStream) -> TokenStream {
     };
 
     #[cfg(not(feature = "offline"))]
-    let svg_result = fetch_svg(&iconify_input);
-
-    let svg = match svg_result {
-        Ok(svg) => svg,
-        Err(err) => return err.to_compile_error().into(),
-    };
+    let svg = fetch_svg(&iconify_input)?;
 
     #[cfg(feature = "offline")]
     if prepare_offline_icons() {
@@ -376,8 +372,88 @@ pub fn iconify_svg_impl(input: TokenStream) -> TokenStream {
         fs::write(&path, &svg).unwrap();
     }
 
-    quote! {
+    Ok(quote! {
         #svg
+    })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::iconify_svg_impl;
+    use quote::quote;
+    use std::result::Result;
+
+    #[test]
+    fn test_basic() -> Result<(), String> {
+        let svg = iconify_svg_impl(quote! {
+            "mdi:home"
+        })
+        .unwrap()
+        .to_string();
+
+        assert_eq!(
+            svg,
+            "\"<svg xmlns=\\\"http://www.w3.org/2000/svg\\\" width=\\\"1em\\\" height=\\\"1em\\\" viewBox=\\\"0 0 24 24\\\"><path fill=\\\"currentColor\\\" d=\\\"M10 20v-6h4v6h5v-8h3L12 3L2 12h3v8h5Z\\\"/></svg>\""
+        );
+
+        Ok(())
     }
-    .into()
+
+    #[test]
+    fn test_basic_attributes() -> Result<(), String> {
+        let svg = iconify_svg_impl(quote! {
+            "mdi:home",
+            color = "red",
+            width = "2em",
+            height = "3em",
+            flip = "both",
+            rotate = "90",
+            view_box = true
+        })
+        .unwrap()
+        .to_string();
+
+        assert_eq!(
+            svg,
+            "\"<svg xmlns=\\\"http://www.w3.org/2000/svg\\\" width=\\\"2em\\\" height=\\\"3em\\\" viewBox=\\\"0 0 24 24\\\"><rect x=\\\"0\\\" y=\\\"0\\\" width=\\\"24\\\" height=\\\"24\\\" fill=\\\"rgba(255, 255, 255, 0)\\\" /><g transform=\\\"rotate(-90 12 12)\\\"><path fill=\\\"red\\\" d=\\\"M10 20v-6h4v6h5v-8h3L12 3L2 12h3v8h5Z\\\"/></g></svg>\""
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_pack_parse_fail() -> Result<(), String> {
+        let no_colon = iconify_svg_impl(quote! {
+            "mdi-home"
+        })
+        .unwrap_err()
+        .to_string();
+
+        let too_many_colons = iconify_svg_impl(quote! {
+            "mdi:home:foo"
+        })
+        .unwrap_err()
+        .to_string();
+
+        assert_eq!(no_colon, "expected `pack_name:icon_name`");
+        assert_eq!(too_many_colons, "expected `pack_name:icon_name`");
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_pack_not_found_fail() -> Result<(), String> {
+        let pack_not_found = iconify_svg_impl(quote! {
+            "this-is-not:an-icon-i-hope"
+        })
+        .unwrap_err()
+        .to_string();
+
+        assert_eq!(
+            pack_not_found,
+            "icon not found: https://api.iconify.design/this-is-not/an-icon-i-hope.svg?"
+        );
+
+        Ok(())
+    }
 }

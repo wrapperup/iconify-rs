@@ -20,19 +20,19 @@
 //!
 //! ## 📝 Usage
 //!
-//! ```jsx
+//! ```
 //! let svg = iconify::svg!("mdi:home")
 //! ```
 //! `iconify::svg!` will download and embed an SVG as a string. It will also cache the request,
 //! so it won't download the same SVG twice.
-//! ```rust
+//! ```
 //! let svg = "<svg>...</svg>"
 //! ```
 //!
 //! #### Options
 //!
 //! You can pass options to the macro to customize the SVG.
-//! ```rust
+//! ```
 //! let svg = iconify::svg!("mdi:home",
 //!    width = "24",
 //!    height = "24",
@@ -48,7 +48,7 @@
 //! It can also be used directly in rsx, or any compile-time template engine.
 //!
 //! Maud:
-//! ```rust
+//! ```
 //! html! {
 //!     body {
 //!         .card {
@@ -61,7 +61,7 @@
 //!
 //! Askama (Currently, a bug prevents you from using the full macro path. See [Issue #836](https://github.com/djc/askama/issues/836))
 //!
-//! ```jsx
+//! ```
 //! <body>
 //!   <div class="card">
 //!     {{ svg!("mdi:home")|safe }}
@@ -97,7 +97,7 @@ mod svg;
 /// # Usage
 /// The first argument is the icon's package and name, separated by a colon.
 ///
-/// ```rust
+/// ```
 ///    let svg = iconify::svg!("mdi:home");
 ///    println!("{}", svg);
 /// ```
@@ -121,7 +121,7 @@ mod svg;
 /// * `view_box = <bool>`
 ///   * If set to true, the SVG will include an invisible bounding box.
 ///
-/// ```rust
+/// ```
 /// iconify::svg!(
 ///     "pack:name",
 ///     color = "red",
@@ -134,5 +134,8 @@ mod svg;
 /// ```
 #[proc_macro]
 pub fn svg(input: TokenStream) -> TokenStream {
-    svg::iconify_svg_impl(input)
+    match svg::iconify_svg_impl(input.into()) {
+        Ok(output) => output.into(),
+        Err(err) => err.to_compile_error().into(),
+    }
 }

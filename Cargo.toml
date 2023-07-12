@@ -11,19 +11,24 @@ readme = "README.md"
 keywords = ["iconify", "icons", "proc-macro"]
 
 [features]
-default = ["cache"]
+default = ["cache", "tls"]
+tls = ["ureq/tls"]
 cache = ["directories", "blake3"]
 offline = ["blake3"]
 
 [lib]
 proc-macro = true
+doctest = false # requires network access, can't really use doctests
 
 [dependencies]
-proc-macro2 = "1.0.63"
+proc-macro2 = "1.0.64"
 quote = "1.0.29"
-syn = "2.0.23"
-reqwest = { version = "0.11.18", features = ["blocking"] }
+syn = "2.0.25"
+ureq = { version = "2.7.1", default-features = false }
 directories = { version = "5.0.1", optional = true }
 url = "2.4.0"
-blake3 = { version = "1.4.0", optional = true }
+blake3 = { version = "1.4.1", optional = true }
 hex = "0.4.3"
+
+[dev-dependencies]
+iconify = { path = ".", default-features = false }
