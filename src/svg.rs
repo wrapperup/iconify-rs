@@ -388,6 +388,7 @@ mod tests {
         let svg = iconify_svg_impl(quote! {
             "mdi:home"
         })
+        .unwrap()
         .to_string();
 
         assert_eq!(
@@ -409,6 +410,7 @@ mod tests {
             rotate = "90",
             view_box = true
         })
+        .unwrap()
         .to_string();
 
         assert_eq!(
@@ -424,21 +426,23 @@ mod tests {
         let no_colon = iconify_svg_impl(quote! {
             "mdi-home"
         })
+        .unwrap_err()
         .to_string();
 
         let too_many_colons = iconify_svg_impl(quote! {
             "mdi:home:foo"
         })
+        .unwrap_err()
         .to_string();
 
         assert_eq!(
             no_colon,
-            ":: core :: compile_error ! { \"expected `pack_name:icon_name`\" }"
+            "expected `pack_name:icon_name`"
         );
 
         assert_eq!(
             too_many_colons,
-            ":: core :: compile_error ! { \"expected `pack_name:icon_name`\" }"
+            "expected `pack_name:icon_name`"
         );
 
         Ok(())
@@ -449,11 +453,12 @@ mod tests {
         let pack_not_found = iconify_svg_impl(quote! {
             "this-is-not:an-icon-i-hope"
         })
+        .unwrap_err()
         .to_string();
 
         assert_eq!(
             pack_not_found,
-            ":: core :: compile_error ! { \"icon not found: https://api.iconify.design/this-is-not/an-icon-i-hope.svg?\" }"
+            "icon not found: https://api.iconify.design/this-is-not/an-icon-i-hope.svg?"
         );
 
         Ok(())
