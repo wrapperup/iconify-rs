@@ -344,11 +344,8 @@ fn fetch_svg(iconify_input: &IconifyInput) -> Result<String, syn::Error> {
     Ok(text)
 }
 
-pub fn iconify_svg_impl(input: TokenStream) -> TokenStream {
-    let iconify_input = match syn::parse2::<IconifyInput>(input) {
-        Ok(input) => input,
-        Err(err) => return err.to_compile_error().into(),
-    };
+pub fn iconify_svg_impl(input: TokenStream) -> syn::Result<TokenStream> {
+    let iconify_input = syn::parse2::<IconifyInput>(input)?;
 
     // If we're using offline icons, we need to fetch them from the
     // iconify API during development. This is done by setting the
@@ -361,12 +358,7 @@ pub fn iconify_svg_impl(input: TokenStream) -> TokenStream {
     };
 
     #[cfg(not(feature = "offline"))]
-    let svg_result = fetch_svg(&iconify_input);
-
-    let svg = match svg_result {
-        Ok(svg) => svg,
-        Err(err) => return err.to_compile_error().into(),
-    };
+    let svg = fetch_svg(&iconify_input)?;
 
     #[cfg(feature = "offline")]
     if prepare_offline_icons() {
@@ -380,10 +372,9 @@ pub fn iconify_svg_impl(input: TokenStream) -> TokenStream {
         fs::write(&path, &svg).unwrap();
     }
 
-    quote! {
+    Ok(quote! {
         #svg
-    }
-    .into()
+    })
 }
 
 #[cfg(test)]

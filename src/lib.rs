@@ -134,5 +134,8 @@ mod svg;
 /// ```
 #[proc_macro]
 pub fn svg(input: TokenStream) -> TokenStream {
-    svg::iconify_svg_impl(input.into()).into()
+    match svg::iconify_svg_impl(input.into()) {
+        Ok(output) => output.into(),
+        Err(err) => err.to_compile_error().into(),
+    }
 }
