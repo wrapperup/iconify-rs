@@ -435,15 +435,9 @@ mod tests {
         .unwrap_err()
         .to_string();
 
-        assert_eq!(
-            no_colon,
-            "expected `pack_name:icon_name`"
-        );
+        assert_eq!(no_colon, "expected `pack_name:icon_name`");
 
-        assert_eq!(
-            too_many_colons,
-            "expected `pack_name:icon_name`"
-        );
+        assert_eq!(too_many_colons, "expected `pack_name:icon_name`");
 
         Ok(())
     }
