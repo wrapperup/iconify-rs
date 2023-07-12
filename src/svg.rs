@@ -409,12 +409,12 @@ mod tests {
     #[test]
     fn test_basic_attributes() -> Result<(), String> {
         let svg = iconify_svg_impl(quote! {
-            "mdi:home", 
+            "mdi:home",
             color = "red",
             width = "2em",
             height = "3em",
-            flip = "both", 
-            rotate = "90", 
+            flip = "both",
+            rotate = "90",
             view_box = true
         })
         .to_string();
