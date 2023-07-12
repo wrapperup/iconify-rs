@@ -112,11 +112,12 @@ mod svg;
 /// * `height = <str>`
 ///   * Sets the height of the SVG. This can be any valid CSS height.
 ///   * If this is not set, the SVG will be rendered at 1em.
-/// * `flip = <bool>`
-///   * Flips the SVG horizontally.
+/// * `flip = <str>`
+///   * Flips the SVG horizontally, vertically, or both.
+///   * Available values: "horizontal", "vertical", "both"
 /// * `rotate = <str>`
-///   * Available values: "90", "180", "270"
 ///   * Rotates the SVG by the given amount.
+///   * Available values: "90", "180", "270"
 /// * `view_box = <bool>`
 ///   * If set to true, the SVG will include an invisible bounding box.
 ///

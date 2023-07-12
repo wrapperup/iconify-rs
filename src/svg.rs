@@ -73,7 +73,7 @@ impl FromStr for IconifyFlip {
         match s {
             "horizontal" => Ok(IconifyFlip::Horizontal),
             "vertical" => Ok(IconifyFlip::Vertical),
-            "horizontal,vertical" | "vertical,horizontal" => Ok(IconifyFlip::Both),
+            "both" | "horizontal,vertical" | "vertical,horizontal" => Ok(IconifyFlip::Both),
             _ => Err(()),
         }
     }
