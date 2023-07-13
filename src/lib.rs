@@ -125,9 +125,9 @@ mod svg;
 /// iconify::svg!(
 ///     "pack:name",
 ///     color = "red",
-///     width = 128,
-///     height = 128,
-///     flip = true,
+///     width = "128px",
+///     height = "128px",
+///     flip = "horizontal",
 ///     rotate = "90",
 ///     view_box = true
 /// )
