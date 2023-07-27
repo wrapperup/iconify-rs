@@ -93,6 +93,7 @@ mod attrs;
 mod svg;
 
 /// Embeds an SVG from Iconify.
+/// For a list of icons, see [Iconify Icon Sets](https://icon-sets.iconify.design/).
 ///
 /// # Usage
 /// The first argument is the icon's package and name, separated by a colon.
