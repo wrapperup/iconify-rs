@@ -265,7 +265,9 @@ fn iconify_cache_path(input: &IconifyInput) -> Result<std::path::PathBuf, syn::E
 }
 
 #[cfg(feature = "offline")]
-fn offline_dir() -> PathBuf {
+fn offline_dir() -> std::path::PathBuf {
+    use std::path::PathBuf;
+
     if let Ok(dir) = env::var("ICONIFY_OFFLINE_DIR") {
         return PathBuf::from(dir);
     }
@@ -276,7 +278,7 @@ fn offline_dir() -> PathBuf {
 }
 
 #[cfg(feature = "offline")]
-fn offline_icon_path(input: &IconifyInput) -> Result<PathBuf, syn::Error> {
+fn offline_icon_path(input: &IconifyInput) -> Result<std::path::PathBuf, syn::Error> {
     let digest = input.hash_digest()?;
 
     let mut path = offline_dir();
@@ -290,10 +292,10 @@ fn offline_icon_path(input: &IconifyInput) -> Result<PathBuf, syn::Error> {
 fn offline_svg(input: &IconifyInput) -> Result<String, syn::Error> {
     let path = offline_icon_path(input)?;
 
-    fs::read_to_string(&path).map_err(|err| {
+    std::fs::read_to_string(&path).map_err(|err| {
         syn::Error::new(
             Span::call_site(),
-            format!("failed to read offline icon: {err}"),
+            format!("failed to read offline icon. {err}.\nusually this means you need to prepare icons first with ICONIFY_PREPARE."),
         )
     })
 }
@@ -351,11 +353,11 @@ pub fn iconify_svg_impl(input: TokenStream) -> syn::Result<TokenStream> {
     // iconify API during development. This is done by setting the
     // ICONIFY_PREPARE environment variable.
     #[cfg(feature = "offline")]
-    let svg_result = if prepare_offline_icons() {
+    let svg = if prepare_offline_icons() {
         fetch_svg(&iconify_input)
     } else {
         offline_svg(&iconify_input)
-    };
+    }?;
 
     #[cfg(not(feature = "offline"))]
     let svg = fetch_svg(&iconify_input)?;
@@ -363,13 +365,10 @@ pub fn iconify_svg_impl(input: TokenStream) -> syn::Result<TokenStream> {
     #[cfg(feature = "offline")]
     if prepare_offline_icons() {
         // Prepare offline icons
-        let path = match offline_icon_path(&iconify_input) {
-            Ok(path) => path,
-            Err(err) => return err.to_compile_error().into(),
-        };
+        let path = offline_icon_path(&iconify_input)?;
 
-        fs::create_dir_all(path.parent().unwrap()).unwrap();
-        fs::write(&path, &svg).unwrap();
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        std::fs::write(&path, &svg).unwrap();
     }
 
     Ok(quote! {
