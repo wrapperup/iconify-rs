@@ -21,7 +21,7 @@ proc-macro = true
 doctest = false # requires network access, can't really use doctests
 
 [dependencies]
-proc-macro2 = "1.0.69"
+proc-macro2 = "1.0.70"
 quote = "1.0.33"
 syn = "2.0.39"
 ureq = { version = "2.8.0", default-features = false }
