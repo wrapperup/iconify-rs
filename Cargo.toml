@@ -22,7 +22,7 @@ doctest = false # requires network access, can't really use doctests
 
 [dependencies]
 proc-macro2 = "1.0.69"
-quote = "1.0.33"
+quote = "1.0.34"
 syn = "2.0.39"
 ureq = { version = "2.8.0", default-features = false }
 directories = { version = "5.0.1", optional = true }
