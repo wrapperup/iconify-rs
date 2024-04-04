@@ -91,3 +91,8 @@ If you don't want iconify-rs to make requests at compile-time in CI (or other re
 
 If you want to set a custom directory, you can also set `ICONIFY_OFFLINE_DIR`.
 
+## ⚙️ Configuration
+- `ICONIFY_URL` - Sets the API url to use. If not set, the default is "https://api.iconify.design"
+- `ICONIFY_PREPARE` - If set, icons will be written to the offline icons directory (offline mode only)
+- `ICONIFY_OFFLINE_DIR` - Sets the offline icons directory. If not set, the default is "/icons" in your project directory (`CARGO_MANIFEST_DIR`)
+
