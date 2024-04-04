@@ -63,12 +63,12 @@ html! {
 }
 ```
 
-Askama (Currently, a bug prevents you from using the full macro path. See [Issue #836](https://github.com/djc/askama/issues/836))
+Askama
 
 ```jsx
 <body>
   <div class="card">
-    {{ svg!("mdi:home")|safe }}
+    {{ iconify::svg!("mdi:home")|safe }}
     <p>Hello!</p>
 </body>
 ```
