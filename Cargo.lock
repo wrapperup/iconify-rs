@@ -109,7 +109,7 @@ checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
 
 [[package]]
 name = "iconify"
-version = "0.2.6"
+version = "0.3.0"
 dependencies = [
  "blake3",
  "directories",
