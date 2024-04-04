@@ -243,12 +243,16 @@ fn iconify_cache_dir() -> std::path::PathBuf {
         return PathBuf::from(dir);
     }
 
-    #[cfg(not(target_os = "windows"))]
-    let dir = PathBuf::from(BaseDirs::new().unwrap().cache_dir());
-
-    #[cfg(target_os = "windows")]
-    // I didn't like the idea of having a cache dir in the root of %LOCALAPPDATA%.
-    let dir = PathBuf::from(BaseDirs::new().unwrap().cache_dir()).join("cache");
+    let dir = if cfg!(target_family = "unix") {
+        // originally we used cache_dir for all non-Windows platforms but that returns
+        // a path that's not writable in cross-rs Docker. /tmp should always work
+        PathBuf::from("/tmp")
+    } else if cfg!(target_os = "windows") {
+        // I didn't like the idea of having a cache dir in the root of %LOCALAPPDATA%.
+        PathBuf::from(BaseDirs::new().unwrap().cache_dir()).join("cache")
+    } else {
+        PathBuf::from(BaseDirs::new().unwrap().cache_dir())
+    };
 
     dir.join("iconify-rs")
 }
